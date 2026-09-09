@@ -1,9 +1,8 @@
 name: Build APK
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,20 +15,18 @@ jobs:
           distribution: 'temurin'
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-      - name: Fix gradle wrapper jar if missing
+      - name: Clean stray root files (from flat upload)
         run: |
-          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
-            mkdir -p gradle/wrapper
-            echo "Downloading wrapper jar..."
-            wget -q https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar -O gradle/wrapper/gradle-wrapper.jar ||             curl -sL -o gradle/wrapper/gradle-wrapper.jar https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar ||             echo "Wrapper download failed, trying alternative"
-          fi
-          ls -lh gradle/wrapper/
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+          rm -f index.html MainActivity.kt AndroidManifest.xml build.gradle.bak || true
+          ls -R | head -n 100
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: assembleDebug --stacktrace
+          gradle-version: 8.4
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
+          name: Calculator-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
