@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculator</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-600-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-300-normal.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);overflow:hidden}
+.bg-orbs{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.3;animation:float 8s ease-in-out infinite}
+.orb:nth-child(1){width:400px;height:400px;background:#7c3aed;top:-100px;left:-100px}
+.orb:nth-child(2){width:300px;height:300px;background:#2563eb;bottom:-50px;right:-50px;animation-delay:-3s}
+.orb:nth-child(3){width:250px;height:250px;background:#ec4899;top:50%;left:60%;animation-delay:-5s}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-30px) scale(1.05)}66%{transform:translate(-20px,20px) scale(.95)}}
+.calculator{position:relative;z-index:1;width:380px;background:rgba(255,255,255,.05);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border-radius:28px;border:1px solid rgba(255,255,255,.1);box-shadow:0 25px 60px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.05) inset,0 1px 0 rgba(255,255,255,.1) inset;padding:28px;animation:slideUp .6s cubic-bezier(.16,1,.3,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.display{background:rgba(0,0,0,.25);border-radius:18px;padding:24px;margin-bottom:24px;min-height:120px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;border:1px solid rgba(255,255,255,.05);overflow:hidden}
+.expression{font-size:16px;font-weight:300;color:rgba(255,255,255,.45);margin-bottom:8px;min-height:22px;word-break:break-all;text-align:right;width:100%;transition:all .2s ease}
+.result{font-size:42px;font-weight:600;color:#fff;word-break:break-all;text-align:right;width:100%;transition:all .2s ease;line-height:1.2}
+.result.shrink{font-size:30px}
+.buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.btn{height:64px;border:none;border-radius:16px;font-size:20px;font-family:'Inter',sans-serif;font-weight:600;cursor:pointer;transition:all .15s ease;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;user-select:none}
+.btn::after{content:'';position:absolute;inset:0;border-radius:16px;opacity:0;transition:opacity .15s ease;background:radial-gradient(circle at center,rgba(255,255,255,.3),transparent 70%)}
+.btn:active::after{opacity:1}
+.btn-number{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.06)}
+.btn-number:hover{background:rgba(255,255,255,.14)}
+.btn-number:active,.btn-operator:active,.btn-function:active,.btn-equals:active{transform:scale(.94)}
+.btn-number:active{background:rgba(255,255,255,.18)}
+.btn-operator{background:rgba(124,58,237,.35);color:#c4b5fd;border:1px solid rgba(124,58,237,.2)}
+.btn-operator:hover{background:rgba(124,58,237,.5)}
+.btn-operator:active{background:rgba(124,58,237,.6)}
+.btn-operator.active-op{background:rgba(124,58,237,.7);box-shadow:0 0 20px rgba(124,58,237,.4)}
+.btn-function{background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.06);font-size:17px}
+.btn-function:hover{background:rgba(255,255,255,.1)}
+.btn-equals{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:1px solid rgba(124,58,237,.3);box-shadow:0 4px 15px rgba(124,58,237,.3)}
+.btn-equals:hover{background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 6px 25px rgba(124,58,237,.45)}
+.btn-zero{grid-column:span 2}
+.btn .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.25);transform:scale(0);animation:ripple-anim .5s ease-out;pointer-events:none}
+@keyframes ripple-anim{to{transform:scale(4);opacity:0}}
+.history-toggle{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s ease;z-index:2}
+.history-toggle:hover{background:rgba(255,255,255,.14);color:rgba(255,255,255,.8)}
+.history-panel{position:absolute;top:0;right:0;width:100%;height:100%;background:rgba(15,12,41,.95);backdrop-filter:blur(20px);border-radius:28px;padding:28px;z-index:10;display:none;flex-direction:column;animation:fadeIn .25s ease}
+.history-panel.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.history-header h3{color:#fff;font-size:18px;font-weight:600}
+.history-close{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.6);width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s ease}
+.history-close:hover{background:rgba(255,255,255,.14);color:#fff}
+.history-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.history-list::-webkit-scrollbar{width:4px}
+.history-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
+.history-item{padding:12px 16px;background:rgba(255,255,255,.04);border-radius:12px;cursor:pointer;transition:all .15s ease;border:1px solid rgba(255,255,255,.04)}
+.history-item:hover{background:rgba(255,255,255,.08)}
+.history-item .hist-expr{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:4px}
+.history-item .hist-result{font-size:18px;font-weight:600;color:#c4b5fd}
+.history-empty{flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.25);font-size:14px}
+.clear-history{margin-top:12px;padding:10px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.2);color:#fca5a5;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;transition:all .2s ease}
+.clear-history:hover{background:rgba(239,68,68,.25)}
+@media(max-width:420px){.calculator{width:calc(100vw - 32px);padding:20px;border-radius:24px}.btn{height:58px;border-radius:14px}.buttons{gap:10px}.result{font-size:36px}}
+</style>
+</head>
+<body>
+<div class="bg-orbs"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+<div class="calculator">
+<button class="history-toggle" id="historyToggle" title="History">🕘</button>
+<div class="history-panel" id="historyPanel">
+<div class="history-header"><h3>History</h3><button class="history-close" id="historyClose">✕</button></div>
+<div class="history-list" id="historyList"><div class="history-empty">No history yet</div></div>
+<button class="clear-history" id="clearHistory">Clear History</button>
+</div>
+<div class="display"><div class="expression" id="expression"></div><div class="result" id="result">0</div></div>
+<div class="buttons">
+<button class="btn btn-function" data-action="clear">AC</button><button class="btn btn-function" data-action="toggle">+/−</button><button class="btn btn-function" data-action="percent">%</button><button class="btn btn-operator" data-action="operator" data-value="÷">÷</button>
+<button class="btn btn-number" data-action="number" data-value="7">7</button><button class="btn btn-number" data-action="number" data-value="8">8</button><button class="btn btn-number" data-action="number" data-value="9">9</button><button class="btn btn-operator" data-action="operator" data-value="×">×</button>
+<button class="btn btn-number" data-action="number" data-value="4">4</button><button class="btn btn-number" data-action="number" data-value="5">5</button><button class="btn btn-number" data-action="number" data-value="6">6</button><button class="btn btn-operator" data-action="operator" data-value="−">−</button>
+<button class="btn btn-number" data-action="number" data-value="1">1</button><button class="btn btn-number" data-action="number" data-value="2">2</button><button class="btn btn-number" data-action="number" data-value="3">3</button><button class="btn btn-operator" data-action="operator" data-value="+">+</button>
+<button class="btn btn-number btn-zero" data-action="number" data-value="0">0</button><button class="btn btn-number" data-action="decimal">.</button><button class="btn btn-equals" data-action="equals">=</button>
+</div></div>
+<script>
+const expressionEl=document.getElementById('expression'),resultEl=document.getElementById('result'),historyPanel=document.getElementById('historyPanel'),historyList=document.getElementById('historyList'),historyToggle=document.getElementById('historyToggle'),historyClose=document.getElementById('historyClose'),clearHistoryBtn=document.getElementById('clearHistory');
+let currentValue='0',previousValue='',operator=null,shouldResetScreen=false,history=[];
+function updateDisplay(){resultEl.textContent=currentValue;resultEl.classList.toggle('shrink',currentValue.length>10)}
+function formatNumber(num){if(isNaN(num)||!isFinite(num))return'Error';const str=num.toString();return str.length>14?parseFloat(num.toPrecision(10)).toString():str}
+function calculate(a,op,b){a=parseFloat(a);b=parseFloat(b);switch(op){case'+':return a+b;case'−':return a-b;case'×':return a*b;case'÷':return b===0?'Error':a/b;default:return b}}
+function inputNumber(num){if(currentValue==='Error')currentValue='0';if(shouldResetScreen){currentValue=num;shouldResetScreen=false}else if(currentValue==='0'&&num!=='0')currentValue=num;else if(currentValue==='0'&&num==='0')return;else{if(currentValue.length>=15)return;currentValue+=num}updateDisplay()}
+function inputDecimal(){if(shouldResetScreen){currentValue='0.';shouldResetScreen=false;updateDisplay();return}if(!currentValue.includes('.'))currentValue+='.';updateDisplay()}
+function inputOperator(op){if(currentValue==='Error')return;if(operator&&!shouldResetScreen){const r=formatNumber(calculate(previousValue,operator,currentValue));expressionEl.textContent=`${r} ${op}`;previousValue=r;currentValue=r}else{previousValue=currentValue;expressionEl.textContent=`${currentValue} ${op}`}operator=op;shouldResetScreen=true;highlightOperator(op)}
+function highlightOperator(op){document.querySelectorAll('.btn-operator').forEach(b=>b.classList.toggle('active-op',b.dataset.value===op))}
+function clearOperatorHighlight(){document.querySelectorAll('.btn-operator').forEach(b=>b.classList.remove('active-op'))}
+function inputEquals(){if(!operator||currentValue==='Error')return;const a=previousValue,b=currentValue,r=formatNumber(calculate(a,operator,b)),expr=`${a} ${operator} ${b}`;expressionEl.textContent=`${expr} =`;addToHistory(expr,r);currentValue=r;previousValue='';operator=null;shouldResetScreen=true;clearOperatorHighlight();updateDisplay()}
+function inputClear(){currentValue='0';previousValue='';operator=null;shouldResetScreen=false;expressionEl.textContent='';clearOperatorHighlight();updateDisplay()}
+function inputToggle(){if(currentValue==='0'||currentValue==='Error')return;currentValue=currentValue.startsWith('-')?currentValue.slice(1):'-'+currentValue;updateDisplay()}
+function inputPercent(){if(currentValue==='Error')return;currentValue=formatNumber(parseFloat(currentValue)/100);updateDisplay()}
+function addToHistory(expr,result){history.unshift({expression:expr,result});if(history.length>50)history.pop();renderHistory()}
+function renderHistory(){if(!history.length){historyList.innerHTML='<div class="history-empty">No history yet</div>';return}historyList.innerHTML=history.map((x,i)=>`<div class="history-item" data-index="${i}"><div class="hist-expr">${x.expression} =</div><div class="hist-result">${x.result}</div></div>`).join('');historyList.querySelectorAll('.history-item').forEach(el=>el.addEventListener('click',()=>{currentValue=history[+el.dataset.index].result;shouldResetScreen=true;updateDisplay();historyPanel.classList.remove('show')}))}
+function createRipple(e,btn){const r=document.createElement('span');r.className='ripple';const rect=btn.getBoundingClientRect(),size=Math.max(rect.width,rect.height);r.style.width=r.style.height=size+'px';r.style.left=e.clientX-rect.left-size/2+'px';r.style.top=e.clientY-rect.top-size/2+'px';btn.appendChild(r);r.addEventListener('animationend',()=>r.remove())}
+document.querySelectorAll('.btn').forEach(btn=>btn.addEventListener('click',e=>{createRipple(e,btn);const a=btn.dataset.action,v=btn.dataset.value;switch(a){case'number':inputNumber(v);break;case'decimal':inputDecimal();break;case'operator':inputOperator(v);break;case'equals':inputEquals();break;case'clear':inputClear();break;case'toggle':inputToggle();break;case'percent':inputPercent();break}}));
+document.addEventListener('keydown',e=>{if(e.key>='0'&&e.key<='9')inputNumber(e.key);else if(e.key==='. ')inputDecimal();else if(e.key==='.')inputDecimal();else if(e.key==='+')inputOperator('+');else if(e.key==='-')inputOperator('−');else if(e.key==='*')inputOperator('×');else if(e.key==='/'){e.preventDefault();inputOperator('÷')}else if(e.key==='Enter'||e.key==='=')inputEquals();else if(e.key==='Escape'||e.key==='c'||e.key==='C')inputClear();else if(e.key==='%')inputPercent();else if(e.key==='Backspace'){if(currentValue.length>1&&!shouldResetScreen)currentValue=currentValue.slice(0,-1);else currentValue='0';updateDisplay()}});
+historyToggle.addEventListener('click',()=>historyPanel.classList.add('show'));historyClose.addEventListener('click',()=>historyPanel.classList.remove('show'));clearHistoryBtn.addEventListener('click',()=>{history=[];renderHistory()});
+</script>
+</body>
+</html>
